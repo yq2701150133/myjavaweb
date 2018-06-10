@@ -1,0 +1,19 @@
+！！！！！！！！！！！！！开发service：
+    public class BusinessService {
+
+        BookDao bookDao = new BookDao();
+
+        /*列出所有的书*/
+        public Map getAll() {
+
+            return bookDao.getAll();
+        }
+
+        /*根据书的id获取书*/
+        public Book findBook(String id) {
+            return bookDao.find(id);
+        }
+
+        //...待会还有其他的功能再从这里补充！
+    }
+

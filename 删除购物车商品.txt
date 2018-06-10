@@ -1,0 +1,44 @@
+
+
+！！！！！！！！！！删除购物车商品：
+把删除操作挂在超链接上，超链接指向DeleteCartServlet，
+并将想要删除的书本的id带过去
+    <td><a href="${pageContext.request.contextPath}/DeleteCartBook?bookid=${me.key}">删除</a></td>
+
+开发DeleteCartBook的Servlet：
+       //获取得到用户想要删除哪个书本的id
+        String id = request.getParameter("bookid");
+
+        //获取该用户相对应的购物车对象
+        Cart cart = (Cart) request.getSession().getAttribute("cart");
+
+        try {
+            //删除购物车的商品，也应该是在BusinessService中有的功能，于是乎又回到BusinessService中写代码
+            BusinessService businessService = new BusinessService();
+            businessService.deleteBook(id, cart);
+
+            //删除购物车的商品后，也应该直接跳转回去购物车的显示页面中
+            request.getRequestDispatcher("/WEB-INF/listCart.jsp").forward(request, response);
+
+
+        } catch (CartNotFoundException e) {
+            request.setAttribute("message", "购物车空了！");
+            request.getRequestDispatcher("/message.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("message", "删除中出现了异常～待会再试试呗！");
+            request.getRequestDispatcher("/message.jsp").forward(request, response);
+        }
+    /*用户要在购物车中删除某个购物项*/
+    public void deleteBook(String id, Cart cart) throws CartNotFoundException {
+
+        //如果用户是直接访问DeleteCartBook的Servlet的，在session中是没有cart这个属性的！
+        //告诉用户购物车是空的
+        if (cart == null) {
+            throw new CartNotFoundException("购物车为空");
+        }
+
+        //把购物项移除出去集合就行了！
+        cart.getBookMap().remove(id);
+    }

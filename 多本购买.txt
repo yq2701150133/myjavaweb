@@ -1,0 +1,82 @@
+！！！！！！！！！！！！！多本购买：
+在购物车上，数量的值改成是输入框：
+ <td><input type="text" name="quantity" value="${me.value.quantity}"></td>
+
+
+
+JavaScript让输入框信息提交给服务器：
+    <script type="text/javascript">
+
+        /*
+        * @input 将输入框本身填入（这样可以获取得到输入框的值）
+        * @id   将书本的id传递进来，告诉服务器是修改哪一个购物项（书）
+        * @oldValue 原本的值，如果用户不想修改了，就修改为原本的值（下面会询问用户是否确定修改）
+        * */
+        function update(input,id,oldValue) {
+
+            //获取得到输入框的数据
+            var quantity = input.value;
+
+            //询问用户是否真的修改
+            var b = window.confirm("你确定修改吗？");
+
+            //如果确定修改，就跳转到修改的Servlet上
+            if(b) {
+                window.location.href = "${pageContext.request.contextPath}/UpdateQuantity?bookid=" + id + "&quantity=" + quantity + "";
+            }else {
+
+                //如果不确定修改，把输入框的数据改成是原来的
+                input.value = oldValue;
+            }
+        }
+    </script>
+
+
+
+
+
+编写UpdateQuantity的Servlet：
+        //获取得到用户想要修改哪一本书的id和相对应的数量
+        String id = request.getParameter("bookid");
+        String quantity = request.getParameter("quantity");
+
+        //得到当前用户的购物车
+        Cart cart = (Cart) request.getSession().getAttribute("cart");
+
+
+        try {
+
+            //调用BusinessService的方法去修改对应的数据
+            BusinessService businessService = new BusinessService();
+            businessService.updateQuantity(id, cart, quantity);
+
+            //修改完再跳转回去购物车的页面中
+            request.getRequestDispatcher("/WEB-INF/listCart.jsp").forward(request, response);
+
+        } catch (CartNotFoundException e) {
+            e.printStackTrace();
+            request.setAttribute("message", "购物车是空的！");
+            request.getRequestDispatcher("message.jsp").forward(request, response);
+        }
+
+
+
+
+
+BusinessService增添了updateQuantity()方法：
+
+    public void updateQuantity(String id, Cart cart, String quantity) throws CartNotFoundException {
+
+
+        //如果用户是直接访问DeleteCartBook的Servlet的，在session中是没有cart这个属性的！
+        //告诉用户购物车是空的
+        if (cart == null) {
+            throw new CartNotFoundException("购物车为空");
+        }
+
+
+        //通过书的id获取得到购物车的购物项，再修改购物项的数量即可！（因为书的id和获取购物项的关键字是一致的！）
+        cart.getBookMap().get(id).setQuantity(Integer.parseInt(quantity));
+
+    }
+
